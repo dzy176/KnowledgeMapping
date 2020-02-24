@@ -1,0 +1,15 @@
+import math
+
+def smallest_subarray_with_given_sum(s, arr):
+    minLen, windowSum, windowStart = math.inf, 0, 0
+    for windowEnd in range(len(arr)):
+        windowSum += arr[windowEnd]
+        while windowSum >= s and windowEnd >= windowStart:
+            minLen = min(minLen, windowEnd-windowStart+1)
+            windowSum -= arr[windowStart]
+            windowStart += 1
+    if minLen == math.inf:
+        return 0
+    return minLen
+
+print(smallest_subarray_with_given_sum(7, [0,7,2,4,6,1,6]))
