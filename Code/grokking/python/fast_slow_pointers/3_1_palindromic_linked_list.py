@@ -26,10 +26,19 @@ def is_palindromic_linked_list(head):
         return True
     middle = find_middle_of_linked_list(head)
     middleReverserd = reverse(middle)
-    while middleReverserd is not None:
-        if head.value != middleReverserd.value:
-            return False
+    middleReverserdCopy = middleReverserd
+    while middleReverserdCopy is not None:
+        if head.value != middleReverserdCopy.value:
+            break
+        middleReverserdCopy = middleReverserdCopy.next
+        head = head.next
+
+    # recover
+    reverse(middleReverserd)
+    # 这点不容易考虑到，原回文的长度为技术、偶数，判读条件可能不一致
+    if middleReverserd is None or head is None:
         return True
+    return False
 
 if __name__ == '__main__':
     head = Node(2)
@@ -38,7 +47,7 @@ if __name__ == '__main__':
     head.next.next.next = Node(4)
     head.next.next.next.next = Node(2)
 
-    # print("Is palindrome: " + str(is_palindromic_linked_list(head)))
+    print("Is palindrome: " + str(is_palindromic_linked_list(head)))
 
     head.next.next.next.next.next = Node(2)
     print("Is palindrome: " + str(is_palindromic_linked_list(head)))
