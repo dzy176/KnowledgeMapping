@@ -1,4 +1,4 @@
-# Kubernetes + Istio 系统分享（一）
+# 微服务治理：Kubernetes + Istio（一）
 
 ### 简介
 
@@ -47,7 +47,7 @@
 
     - **共享网络：**container相互之间访问通过localhost方式
 
-      <img src="D:\KnowledgeMapping\Kubernetes\images\a.jpg" style="zoom:25%;" /><img src="D:\KnowledgeMapping\Kubernetes\images\b.jpg" style="zoom:25%;" />
+      <img src="images\a.jpg" style="zoom:25%;" /><img src="images\b.jpg" style="zoom:25%;" />
 
       ​                            普通docker方式                                                     POD方式
 
@@ -66,7 +66,7 @@
     
       
 
-**ReplicSet**
+**ReplicSet** 副本集
 
 - 定义了对POD副本数的期望值（desired  state)，相当于状态机
 
@@ -74,43 +74,45 @@
 
 - 控制POD中容器的升级与回滚
 
-- **Deployment**
-
-  - 表征用户对k8s集群的一次更新操作
-    - 滚动升级和回滚应用
-    - 扩容和缩容
-  - 生成新ReplicaSet进行POD的管理，旧的RS控制旧版本POD不断减少
-  - 动态展示部署的中间状态（POD创建 | 调度 | 绑定节点 | 启动容器等）
-
-- **Service**
-
-  - 主要用于解决服务发现这个棘手的问题，为**集群内**客户端访问**集群内**的POD提供的负载均衡
-
-    ![1585843695469](images\1585843695469.png)
-
-    - 分配虚拟ClusterIP，用作负载均衡器
-    - clusterIP做DNS域名映射解决服务发现问题
-
   
 
-- **Volume**
+**Deployment**
 
-  - 一个POD中声明的存储卷（volume）:
+- 表征用户对k8s集群的一次更新操作
+  - 滚动升级和回滚应用
+  - 扩容和缩容
+- 生成新ReplicaSet进行POD的管理，旧的RS控制旧版本POD不断减少
+- 动态展示部署的中间状态（POD创建 | 调度 | 绑定节点 | 启动容器等）
 
-    - 可以是本地存储，worker节点上目录
+**Service**
 
-      - 可以手动指定具体使用HOST节点已有具体目录
-      - 可以让K8S帮助生成一个临时目录
+- 主要用于解决服务发现这个棘手的问题，为**集群内**客户端访问**集群内**的POD提供的负载均衡
 
-    - 可以是外部存储，诸如各个云厂商各自的云硬盘
+  ![1585843695469](images\1585843695469.png)
 
-    - 可以是分布式存储系统，ceph，GlusterFS等
-
-      本质上可以看作一个目录，被mount到POD上可被该pod下的所有容器共享，每个容器可以指定各自的mount路径
+  - 分配虚拟ClusterIP，用作负载均衡器
+  - clusterIP做DNS域名映射解决服务发现问题
 
 
 
-**核心组件：**
+**Volume**
+
+- 一个POD中声明的存储卷（volume）:
+
+  - 可以是本地存储，worker节点上目录
+
+    - 可以手动指定具体使用HOST节点已有具体目录
+    - 可以让K8S帮助生成一个临时目录
+
+  - 可以是外部存储，诸如各个云厂商各自的云硬盘
+
+  - 可以是分布式存储系统，ceph，GlusterFS等
+
+  本质上可以看作一个目录，被mount到POD上可被该pod下的所有容器共享，每个容器可以指定各自的mount路径
+
+
+
+### 核心组件：
 
 ![1585843859599](images\1585843859599.png)
 
@@ -134,25 +136,15 @@
     - 反向代理
     - 负载均衡器
 - **Docker**
-  -  Docke引擎是kubernetes中最常用的容器运行时
+  -  Docker引擎是kubernetes中最常用的容器运行时，管理容器的生命周期
 - **Overlay-Network**
   - 开源的网络插件（flannel，calico等），保证集群内POD间相互访问
+- **Ingress**
+- **Egress**
 
+### 存疑
 
+- master node集群上的apiserver如何实现高可用？
 
-#### 演示命令记录
-
-```bash
-# 通过PodIP访问
-curl -g "http://[2002:ac1b:7f59:1:0:22:aae:92e]:8000"
-
-# 通过clusterIp访问
-curl -g "http://[2002:ac1f:a9c8:1::ce3]:80"
-
-# 通过服务发现域名访问
-curl http://hello-world.prj-sre-test.svc.a2.uae:80
-
-```
-
-
+  apiserver的高可用实现方式比较多，常用的就是给apiserver加一个负载均衡器做转发
 
