@@ -1,4 +1,4 @@
-zap学习笔记
+# zap学习笔记
 
 ​		作为一个日志记录器，zap必然对外提供了Logger结构体来实现打印日志的功能。
 
@@ -85,7 +85,7 @@ type Core interface {
         - dev环境采用大写字母标识日志等级(e.g. INFO), e.g.
 
           ```bash
-        2020-04-04T07:11:35.420+0800	INFO	zap/main.go:10	test
+        	2020-04-04T07:11:35.420+0800	INFO	zap/main.go:10	test
           ```
 
         - product环境采用小写字母标识日志等级(e.g. warn), e.g.
@@ -122,7 +122,7 @@ type Core interface {
     
   -  NewProductionConfig，NewDevelopmentConfig这两个方法中分别调用了NewProductionConfig()和NewDevelopmentEncoderConfig()用以生成对应的encoderConfig
 
-  - Build方法
+  - Build(opts ...Option)方法
 
     - 传参Option是一个接口
 
@@ -135,6 +135,15 @@ type Core interface {
       ```
 
       该接口，可以实现对logger对象属性的变更与拓展
+      
+    - 1）buildEncoder(): 生成日志编码器zapcore.Encoder
+    
+      - 依据cfg.Encoding和cfg.EncodingConfig
+      - 底层调用zapcore.NewConsoleEncoder或zapcore.NewJSONEncoder生成编码器
+    
+    - 2）openSinks()：生成两个日志输出对象，分别是zap通用日志和内部错误输出
+    
+      
 
 - 带参数的New方法
 
