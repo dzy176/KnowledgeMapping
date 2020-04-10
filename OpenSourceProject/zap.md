@@ -141,10 +141,28 @@ type Core interface {
       - 依据cfg.Encoding和cfg.EncodingConfig
       - 底层调用zapcore.NewConsoleEncoder或zapcore.NewJSONEncoder生成编码器
     
-    - 2）openSinks()：生成两个日志输出对象，分别是zap通用日志和内部错误输出
+    - 2）openSinks()：生成两个日志输出对象，分别是zap通用日志sink和内部错误输出errSink，该对象的作用是写日志和关闭日志对象。
     
+      - Open()
       
-
+        - open()
+        
+          - newSink(path):
+          
+            - 依据path中的scheme选择对应的工厂函数生成日志输出对象
+          
+            - 用户可以通过RegisterSink注册自定义工厂函数，存放至全局的`_sinkFactories`字典，该工厂函数列表中默认初始化存放了key="file"，value=newFileSink工厂函数，该方法可以生成标准输出对象、标准错误输出对象和文件输出对象三种默认输出方式
+          
+              1. 如果输入的path为"stdout"或"stderr",会生成os.stdout与os.stderr对象
+              2. 如果输入的path为"./xx.log", 日志输出到本地xx.log文件
+              3. 如果输入的path形如"http://127.0.0.1:80/log/"等，用户需要实现日志接受端以及对应的工厂函数注册进zap
+          
+        - 
+        
+          
+      
+      
+  
 - 带参数的New方法
 
   预置了三种New方法可以直接获取开箱即用的logger，分别是
