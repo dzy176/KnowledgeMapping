@@ -96,7 +96,7 @@ type Core interface {
     
           
     
-      - EncodeTime设置时间格式，dev与pro环境的却别如上
+      - EncodeTime设置时间格式，dev与pro环境的区别如上
     
       - EncodeDuration
     
@@ -141,8 +141,20 @@ type Core interface {
       - 依据cfg.Encoding和cfg.EncodingConfig
       - 底层调用zapcore.NewConsoleEncoder或zapcore.NewJSONEncoder生成编码器
     
-    - 2）openSinks()：生成两个日志输出对象，分别是zap通用日志sink和内部错误输出errSink，该对象的作用是写日志和关闭日志对象。
+    - 2）openSinks()：生成两个日志输出对象（实现writeSyncer接口），分别是zap通用日志sink和内部错误输出errSink，该对象的作用是写日志和关闭日志对象。Sink对象就是带close的WriteSyncer
     
+      ```go
+      type Sink interface {
+      	zapcore.WriteSyncer
+      	io.Closer
+      }
+      
+      type WriteSyncer interface {   
+          io.Writer   
+          Sync() error
+      }
+      ```
+      
       - Open()
       
         - open()
@@ -156,12 +168,32 @@ type Core interface {
               1. 如果输入的path为"stdout"或"stderr",会生成os.stdout与os.stderr对象
               2. 如果输入的path为"./xx.log", 日志输出到本地xx.log文件
               3. 如果输入的path形如"http://127.0.0.1:80/log/"等，用户需要实现日志接受端以及对应的工厂函数注册进zap
-          
-        - 
-        
-          
+        - CombineWriteSyncers()：上一步open()生成的是WriteSyncer对象列表，这一步该函数将上一步的列表做了一层封装，生成的multiWriteSyncer对象也实现了WriteSyncer接口，其中Write方法就是循环调用列表中的对象的write方法
       
-      
+    - 3）New(core zapcore.Core, options ...Option)：构造Logger对象
+    
+      - NewCore(): 生成zapcore.Core接口实例ioCore
+    
+        ```go
+        type Core interface {
+        	LevelEnabler
+        	With([]Field) Core
+        	Check(Entry, *CheckedEntry) *CheckedEntry
+        	Write(Entry, []Field) error
+        	Sync() error
+        }
+        ```
+    
+        - LevelEnabler: 限定日志输出起始级别， e.g. product级别日志记录器，是不会输出debug级别的日志的，该日志记录器只会输出INFO级别及以上的日志
+        - With(): 往日志context中加入额外字段
+        - Check(): 根据LevelEnable等逻辑判断传入Entry是否应该被记录
+          - AddCore(): 
+        - Write(): 将日志序列化，写入目的地
+        - Sync(): 刷新缓冲区的日志
+    
+    
+    
+    
   
 - 带参数的New方法
 
