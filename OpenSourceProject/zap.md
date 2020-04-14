@@ -187,7 +187,7 @@ type Core interface {
         - LevelEnabler: 限定日志输出起始级别， e.g. product级别日志记录器，是不会输出debug级别的日志的，该日志记录器只会输出INFO级别及以上的日志
         - With(): 往日志context中加入额外字段
         - Check(): 根据LevelEnable等逻辑判断传入Entry是否应该被记录
-          - AddCore(): 
+          - AddCore():  从对象池获取一个CheckedEntry并重置， 将core对象加入ce的cores队列
         - Write(): 将日志序列化，写入目的地
         - Sync(): 刷新缓冲区的日志
     
