@@ -137,12 +137,12 @@ type Core interface {
       该接口，可以实现对logger对象属性的变更与拓展
       
     - 1）buildEncoder(): 生成日志编码器zapcore.Encoder
-    
+
       - 依据cfg.Encoding和cfg.EncodingConfig
       - 底层调用zapcore.NewConsoleEncoder或zapcore.NewJSONEncoder生成编码器
-    
+
     - 2）openSinks()：生成两个日志输出对象（实现writeSyncer接口），分别是zap通用日志sink和内部错误输出errSink，该对象的作用是写日志和关闭日志对象。Sink对象就是带close的WriteSyncer
-    
+
       ```go
       type Sink interface {
       	zapcore.WriteSyncer
@@ -171,9 +171,9 @@ type Core interface {
         - CombineWriteSyncers()：上一步open()生成的是WriteSyncer对象列表，这一步该函数将上一步的列表做了一层封装，生成的multiWriteSyncer对象也实现了WriteSyncer接口，其中Write方法就是循环调用列表中的对象的write方法
       
     - 3）New(core zapcore.Core, options ...Option)：构造Logger对象
-    
+
       - NewCore(): 生成zapcore.Core接口实例ioCore
-    
+
         ```go
         type Core interface {
         	LevelEnabler
@@ -183,18 +183,41 @@ type Core interface {
         	Sync() error
         }
         ```
-    
+
         - LevelEnabler: 限定日志输出起始级别， e.g. product级别日志记录器，是不会输出debug级别的日志的，该日志记录器只会输出INFO级别及以上的日志
+
         - With(): 往日志context中加入额外字段
-        - Check(): 根据LevelEnable等逻辑判断传入Entry是否应该被记录
-          - AddCore():  从对象池获取一个CheckedEntry并重置， 将core对象加入ce的cores队列
+
+        - Check(Entry, *CheckedEntry): 根据LevelEnable等逻辑判断传入Entry是否应该被记录
+          
+          - AddCore(): 
+            -  从对象池获取一个ce并重置， 将core对象加入ce的cores队列
+            - 如果传入的ce是nil，则会通过sync.pool的new方法初始化一个。
+          
         - Write(): 将日志序列化，写入目的地
+
+          - Logger真正执行写操作并不是直接调用了Core.Write()方法，而是生成ce，ce的Write()方法中有遍历cores，并执行write方法
+
+          - 该方法中判断ce是否dirty的理解：
+
+            理论上，一个ce是通过getCheckedEntry()方法从对象池中获取的
+
+            ```go
+            func getCheckedEntry() *CheckedEntry {
+            	ce := _cePool.Get().(*CheckedEntry)
+            	ce.reset()
+            	return ce
+            }
+            ```
+
+            该方法中对ce进行了reset，所以dirty字段一定是false（非脏数据，没有上次一使用该对象遗留的历史数据）。但是不排除zap程序内部错误或者用户二次开发时获取ce对象没有进行reset，那么会导致日志输出不符合预期。因此，该做法提高了程序的健壮性
+
         - Sync(): 刷新缓冲区的日志
+
     
+
     
-    
-    
-  
+
 - 带参数的New方法
 
   预置了三种New方法可以直接获取开箱即用的logger，分别是
