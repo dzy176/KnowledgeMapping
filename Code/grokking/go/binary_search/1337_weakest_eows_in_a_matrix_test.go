@@ -11,6 +11,7 @@ func kWeakestRows(mat [][]int, k int) []int {
 	n := len(mat[0])
 	tmp := make([]int, m)
 
+	// 计算每一层的和
 	index := 0
 	for index < m {
 		s := count(mat[index])
@@ -18,6 +19,7 @@ func kWeakestRows(mat [][]int, k int) []int {
 		index++
 	}
 
+	// 依次寻找和为0， 1， 2， 3...的下标，直到找到前k个，返回
 	i := 0
 	for i <= n {
 		j := 0
@@ -37,6 +39,7 @@ func kWeakestRows(mat [][]int, k int) []int {
 	return res
 }
 
+// 二分法实现计数
 func count(s []int) (res int) {
 	if s[len(s)-1] == 1 {
 		return len(s)
